@@ -1,5 +1,9 @@
 module.exports = function (config) {
   config.set({
+    karmaTypescriptConfig: {
+      tsconfig: './tsconfig.json',
+    },
+
     frameworks: [
       'jasmine',
       'karma-typescript',
