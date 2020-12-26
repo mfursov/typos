@@ -1,0 +1,19 @@
+{
+  "name": "typescript-karma-minimal",
+  "version": "1.0.0",
+  "description": "A template of a TypeScript project with async Karma tests.",
+  "license": "MIT",
+  "scripts": {
+    "test": "karma start"
+  },
+  "dependencies": {
+    "@types/jasmine": "3.6.2",
+    "@types/node": "14.14.16",
+    "karma": "5.2.3",
+    "karma-chrome-launcher": "3.1.0",
+    "karma-cli": "2.0.0",
+    "karma-jasmine": "4.0.1",
+    "karma-typescript": "5.2.0",
+    "typescript": "4.1.3"
+  }
+}

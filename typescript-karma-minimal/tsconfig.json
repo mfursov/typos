@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "importHelpers": true,
+    "moduleResolution": "Node",
+    "target": "ES5",
+    "types": ["jasmine"],
+    "lib": ["ESNext", "DOM"]
+  }
+}
