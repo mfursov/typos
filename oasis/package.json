@@ -1,0 +1,23 @@
+{
+  "name": "oasis",
+  "version": "1.0.0",
+  "description": "Observable and Asynchronous Stores.",
+  "license": "MIT",
+  "scripts": {
+    "test": "karma start"
+  },
+  "dependencies": {
+    "@angular/core": "11.0.5",
+    "@angular/common": "11.0.5",
+    "@angular/platform-browser": "11.0.5",
+    "@types/jasmine": "3.6.2",
+    "@types/node": "14.14.16",
+    "karma": "5.2.3",
+    "karma-chrome-launcher": "3.1.0",
+    "karma-cli": "2.0.0",
+    "karma-jasmine": "4.0.1",
+    "karma-typescript": "5.2.0",
+    "rxjs": "6.6.3",
+    "typescript": "4.1.3"
+  }
+}
