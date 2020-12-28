@@ -31,7 +31,7 @@ describe('Async Store Adapter', () => {
 
     it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(TEST_STORE_NAME, INDEX_DB_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
   });
 
   describe('should support "list"', () => {
@@ -56,7 +56,7 @@ describe('Async Store Adapter', () => {
 
     it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(TEST_STORE_NAME, INDEX_DB_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
   });
 
   describe('should remove entries when value is undefined', () => {
@@ -88,7 +88,7 @@ describe('Async Store Adapter', () => {
 
     it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(TEST_STORE_NAME, INDEX_DB_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
   });
 
   describe('should support "getAll"', () => {
@@ -115,7 +115,7 @@ describe('Async Store Adapter', () => {
 
     it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(TEST_STORE_NAME, INDEX_DB_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
   });
 
   describe('should support "setAll"', () => {
@@ -132,7 +132,7 @@ describe('Async Store Adapter', () => {
 
     it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(TEST_STORE_NAME, INDEX_DB_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
   });
 
   describe('should support "clear"', () => {
@@ -162,7 +162,7 @@ describe('Async Store Adapter', () => {
 
     it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(TEST_STORE_NAME, INDEX_DB_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
   });
 
 });

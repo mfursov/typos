@@ -1,11 +1,10 @@
 import {AsyncStore, KV} from './async-store';
 
 const MAX_KEY_CHAR = '~';
-const INDEX_DB_SCHEMA_VERSION = 1;
 
 /** Indexed DB bases store adapter. */
 export class IndexedDbAsyncStore implements AsyncStore {
-  constructor(private readonly objectStoreName: string, private readonly indexDbName) {
+  constructor(private readonly indexDbName, private readonly objectStoreName: string, private readonly schemaVersion = 1) {
   }
 
   get<T = unknown>(key: string): Promise<T|undefined> {
@@ -147,7 +146,7 @@ export class IndexedDbAsyncStore implements AsyncStore {
   }
 
   execute(dbOpCallback: (idb: IDBDatabase) => void): void {
-    const request: IDBOpenDBRequest = window.indexedDB.open(this.indexDbName, INDEX_DB_SCHEMA_VERSION);
+    const request: IDBOpenDBRequest = window.indexedDB.open(this.indexDbName, this.schemaVersion);
     //TODO: report errors.
     request.onerror = err => console.error(err);
     request.onsuccess = () => dbOpCallback(request.result);
