@@ -3,11 +3,20 @@ import {InMemoryAsyncStore} from './in-memory-async-store';
 import {LocalStorageAsyncStore} from './local-storage-async-store';
 import {IndexedDbAsyncStore} from './indexed-db-async-store';
 
-const TEST_STORE_NAME = 'test-store';
-const INDEX_DB_NAME = 'index-db';
 
 interface TestListItem {
   foo: string;
+}
+
+let uniqueStoreCounter = 0;
+
+/** Generates unique store name for tests. */
+function genUniqueStoreName(): string {
+  return `test-store-${++uniqueStoreCounter}`;
+}
+
+function genUniqueIndexDbName(): string {
+  return `test-db-${++uniqueStoreCounter}`;
 }
 
 describe('Async Store Adapter', () => {
@@ -29,9 +38,9 @@ describe('Async Store Adapter', () => {
 
     it('InMemory', async () => await test(new InMemoryAsyncStore()));
 
-    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
+    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(genUniqueStoreName())));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(genUniqueIndexDbName(), genUniqueStoreName())));
   });
 
   describe('should support "list"', () => {
@@ -54,9 +63,9 @@ describe('Async Store Adapter', () => {
 
     it('InMemory', async () => await test(new InMemoryAsyncStore()));
 
-    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
+    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(genUniqueStoreName())));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(genUniqueIndexDbName(), genUniqueStoreName())));
   });
 
   describe('should remove entries when value is undefined', () => {
@@ -86,9 +95,9 @@ describe('Async Store Adapter', () => {
 
     it('InMemory', async () => await test(new InMemoryAsyncStore()));
 
-    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
+    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(genUniqueStoreName())));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(genUniqueIndexDbName(), genUniqueStoreName())));
   });
 
   describe('should support "getAll"', () => {
@@ -113,9 +122,9 @@ describe('Async Store Adapter', () => {
 
     it('InMemory', async () => await test(new InMemoryAsyncStore()));
 
-    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
+    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(genUniqueStoreName())));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(genUniqueIndexDbName(), genUniqueStoreName())));
   });
 
   describe('should support "setAll"', () => {
@@ -130,9 +139,9 @@ describe('Async Store Adapter', () => {
 
     it('InMemory', async () => await test(new InMemoryAsyncStore()));
 
-    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
+    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(genUniqueStoreName())));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(genUniqueIndexDbName(), genUniqueStoreName())));
   });
 
   describe('should support "clear"', () => {
@@ -160,9 +169,9 @@ describe('Async Store Adapter', () => {
 
     it('InMemory', async () => await test(new InMemoryAsyncStore()));
 
-    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(TEST_STORE_NAME)));
+    it('LocalStorage', async () => await test(new LocalStorageAsyncStore(genUniqueStoreName())));
 
-    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(INDEX_DB_NAME, TEST_STORE_NAME)));
+    it('IndexedDb', async () => await test(new IndexedDbAsyncStore(genUniqueIndexDbName(), genUniqueStoreName())));
   });
 
 });

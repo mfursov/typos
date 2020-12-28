@@ -8,15 +8,12 @@ export class IndexedDbAsyncStore implements AsyncStore {
   }
 
   get<T = unknown>(key: string): Promise<T|undefined> {
-    const storeName = this.objectStoreName;
     return new Promise<T|undefined>((resolve, reject) => {
       this.execute(db => {
-        const request: IDBRequest = db.transaction(storeName)
-            .objectStore(storeName)
-            .get(key);
+        const request: IDBRequest = db.transaction(this.objectStoreName).objectStore(this.objectStoreName).get(key);
         request.onerror = err => {
           //TODO: do not log to console.
-          console.error(`IndexDB::get() error! Store: ${storeName}, key:${key}`, err);
+          console.error(`IndexDB::get() error! Store: ${(this.objectStoreName)}, key:${key}`, err);
           reject();
         };
         request.onsuccess = () => resolve(request.result ? request.result.value : undefined);
@@ -28,10 +25,9 @@ export class IndexedDbAsyncStore implements AsyncStore {
     if (keys.length === 0) {
       return Promise.resolve([]);
     }
-    const objectStoreName = this.objectStoreName;
     return new Promise<(T|undefined)[]>((resolve, reject) => {
       this.execute(db => {
-        const store = db.transaction(objectStoreName).objectStore(objectStoreName);
+        const store = db.transaction(this.objectStoreName).objectStore(this.objectStoreName);
         const resultValues = new Array<T|undefined>(keys.length);
         let nFinished = 0;
         for (let i = 0; i < keys.length; i++) {
@@ -55,22 +51,21 @@ export class IndexedDbAsyncStore implements AsyncStore {
   }
 
   set<T = unknown>(key: string, value: T|undefined): Promise<void> {
-    const storeName = this.objectStoreName;
     return new Promise<void>((resolve, reject) => {
       this.execute(db => {
         if (value === undefined) {
-          const request = db.transaction(storeName, 'readwrite').objectStore(storeName).delete(key);
+          const request = db.transaction(this.objectStoreName, 'readwrite').objectStore(this.objectStoreName).delete(key);
           request.onerror = err => {
             //TODO: do not log to console.
-            console.error(`IndexDb.delete error in ${storeName}!`, err);
+            console.error(`IndexDb.delete error in ${(this.objectStoreName)}!`, err);
             reject();
           };
           request.onsuccess = () => resolve(undefined);
         } else {
-          const request = db.transaction(storeName, 'readwrite').objectStore(storeName).put({key: key, value: value});
+          const request = db.transaction(this.objectStoreName, 'readwrite').objectStore(this.objectStoreName).put({key: key, value: value});
           request.onerror = err => {
             //TODO: do not log to console.
-            console.error(`IndexDb.put error in ${storeName}!`, err);
+            console.error(`IndexDb.put error in ${(this.objectStoreName)}!`, err);
             reject();
           };
           request.onsuccess = () => resolve();
@@ -80,18 +75,17 @@ export class IndexedDbAsyncStore implements AsyncStore {
   }
 
   setAll(map: { [p: string]: any }): Promise<void> {
-    const storeName = this.objectStoreName;
     return new Promise<void>((resolve, reject) => {
       this.execute(db => {
-        const tx = db.transaction(storeName, 'readwrite');
+        const tx = db.transaction(this.objectStoreName, 'readwrite');
         tx.onerror = err => {
           //TODO: do not log to console.
-          console.error(`IndexDb.add error in ${storeName}!`, err);
+          console.error(`IndexDb.add error in ${(this.objectStoreName)}!`, err);
           reject();
         };
         tx.oncomplete = () => resolve();
 
-        const store = tx.objectStore(storeName);
+        const store = tx.objectStore(this.objectStoreName);
         for (const [key, value] of Object.entries(map)) {
           store.put({key, value});
         }
@@ -100,14 +94,13 @@ export class IndexedDbAsyncStore implements AsyncStore {
   }
 
   list<T = unknown>(keyPrefix?: string): Promise<KV<T>[]> {
-    const storeName = this.objectStoreName;
     return new Promise<KV<T>[]>((resolve, reject) => {
       this.execute(db => {
         const safeKeyPrefix = keyPrefix || '';
         const query: IDBKeyRange = IDBKeyRange.bound(safeKeyPrefix, safeKeyPrefix + MAX_KEY_CHAR);
-        const request = db.transaction(storeName).objectStore(storeName).getAll(query);
+        const request = db.transaction(this.objectStoreName).objectStore(this.objectStoreName).getAll(query);
         request.onerror = err => {
-          console.error(`IndexDb.list error in ${storeName}!`, err);
+          console.error(`IndexDb.list error in ${(this.objectStoreName)}!`, err);
           reject();
         };
         request.onsuccess = () => resolve(request.result.map(e => ({key: e.key, value: e.value})));
