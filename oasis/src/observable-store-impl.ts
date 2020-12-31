@@ -184,7 +184,7 @@ export class ObservableStoreImpl implements ObservableStore {
       rs$.next(this.freezeFn(initValue));
     }
     return rs$;
-  }
+  }                            A
 
   async set<T>(key: string|undefined, value: T|undefined, checkUpdateFn: CheckUpdateFn<T>): Promise<void> {
     if (!key) {
@@ -246,7 +246,7 @@ export class ObservableStoreImpl implements ObservableStore {
     }
   }
 
-  async remove(key: string): Promise<void> {
+  async remove(key: string|undefined): Promise<void> {
     return this.set(key, undefined, skipUpdateCheck);
   }
 

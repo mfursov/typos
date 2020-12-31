@@ -50,8 +50,11 @@ export interface ObservableStore {
    */
   set<T>(key: string|undefined, value: T|undefined, checkUpdateFn: CheckUpdateFn<T>): Promise<void>;
 
-  /** Removes value with the given key from the DB. */
-  remove(key: string): Promise<void>;
+  /**
+   * Removes value with the given key from the DB.
+   * If key is undefined does nothing.
+   */
+  remove(key: string|undefined): Promise<void>;
 
   /** Lists all values by key prefix. */
   snapshot<T>(keyPrefix: string): Promise<KV<T>[]>;
