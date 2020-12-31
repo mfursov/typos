@@ -30,7 +30,7 @@ export class InMemoryAsyncStore implements AsyncStore {
     }
   }
 
-  setAll(map: { [key: string]: unknown }): Promise<void> {
+  setAll<T = unknown>(map: { [key: string]: T }): Promise<void> {
     return new Promise<void>(resolve => {
       for (const [key, value] of Object.entries(map)) {
         this._set(key, value);
@@ -56,16 +56,6 @@ export class InMemoryAsyncStore implements AsyncStore {
       this.map.clear();
       resolve();
     });
-  }
-
-  async init(schemaVersion: number): Promise<void> {
-    const versionKey = '__version__';
-    const myVersion: number|undefined = await this.get(versionKey);
-    if (myVersion != schemaVersion) {
-      await this.clear();
-      await this.set(versionKey, schemaVersion);
-    }
-    return Promise.resolve();
   }
 
   snapshot(): KV<unknown>[] {

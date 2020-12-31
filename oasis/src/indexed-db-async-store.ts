@@ -74,7 +74,7 @@ export class IndexedDbAsyncStore implements AsyncStore {
     });
   }
 
-  setAll(map: { [p: string]: any }): Promise<void> {
+  setAll<T = unknown>(map: { [p: string]: T }): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.execute(db => {
         const tx = db.transaction(this.objectStoreName, 'readwrite');
@@ -122,16 +122,6 @@ export class IndexedDbAsyncStore implements AsyncStore {
         request.onsuccess = () => resolve();
       });
     });
-  }
-
-  async init(schemaVersion: number): Promise<void> {
-    //todo: support upgrade logic
-    const myVersion: number|undefined = await this.get('version');
-    if (myVersion !== schemaVersion) {
-      await this.clear();
-      await this.set('version', schemaVersion);
-    }
-    return Promise.resolve();
   }
 
   snapshot(): KV<unknown>[] {

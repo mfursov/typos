@@ -22,7 +22,7 @@ export interface AsyncStore {
   set<T = unknown>(key: string, value: T|undefined): Promise<void>;
 
   /** Calls 'set' for all entries found in the map. */
-  setAll(map: { [key: string]: unknown }): Promise<void>;
+  setAll<T = unknown>(map: { [key: string]: T }): Promise<void>;
 
   /**
    *  Returns all values with the given key prefix.
@@ -32,13 +32,6 @@ export interface AsyncStore {
 
   /** Clears the store: removes all keys and values. */
   clear(): Promise<void>;
-
-  /**
-   * Initializes the store and sets the version to the given value.
-   * Clears the store if the previous version is not equal to the given version.
-   * TODO: provide an upgrade function as a parameter.
-   */
-  init(schemaVersion: number): Promise<void>;
 
   /** Returns a snapshot for the current store state. */
   snapshot(): KV<unknown>[];

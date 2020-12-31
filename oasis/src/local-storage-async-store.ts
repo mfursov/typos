@@ -26,7 +26,7 @@ export class LocalStorageAsyncStore implements AsyncStore {
     });
   }
 
-  setAll(map: { [p: string]: any }): Promise<void> {
+  setAll<T = unknown>(map: { [p: string]: T }): Promise<void> {
     return new Promise<void>(resolve => {
       for (const [key, value] of Object.entries(map)) {
         LocalStorageAsyncStore._set(this.convertUserKeyToStoreKey(key), value);
@@ -91,16 +91,6 @@ export class LocalStorageAsyncStore implements AsyncStore {
 
   private convertStoreKeyToUserKey(storeKey: string): string {
     return storeKey.substring(this.storeKeyPrefix.length + 1);
-  }
-
-  async init(schemaVersion: number): Promise<void> {
-    //todo: support upgrade
-    const myVersion: number|undefined = await this.get('version');
-    if (myVersion !== schemaVersion) {
-      await this.clear();
-      await this.set('version', schemaVersion);
-    }
-    return Promise.resolve();
   }
 
   snapshot(): KV<unknown>[] {

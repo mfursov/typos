@@ -1,13 +1,12 @@
-import {InMemoryAsyncStore} from './in-memory-async-store';
 import {ObservableStoreImpl} from './observable-store-impl';
-import {KV, AsyncStore} from './async-store';
-import {RefreshMode, skipUpdateCheck} from './observable-store';
+import {AsyncStore, KV} from './async-store';
+import {ObservableStore, RefreshMode, skipUpdateCheck} from './observable-store';
 import {delay, switchMap, take} from 'rxjs/operators';
 import {of, ReplaySubject} from 'rxjs';
 import {checkUpdateByStringify} from './update-functions';
 
 /** No-Op impl used in tests. */
-class NoOpStoreAdapter implements AsyncStore {
+class NoOpAsyncStore implements AsyncStore {
   calls: string[] = [];
 
   clear(): Promise<void> {
@@ -16,37 +15,31 @@ class NoOpStoreAdapter implements AsyncStore {
   }
 
   // @ts-ignore
-  get<T>(key: string): Promise<T|undefined> {
+  get<T = unknown>(key: string): Promise<T|undefined> {
     this.calls.push('get');
     return Promise.resolve(undefined);
   }
 
   // @ts-ignore
-  getAll<T>(keys: ReadonlyArray<string>): Promise<(T|undefined)[]> {
+  getAll<T = unknown>(keys: ReadonlyArray<string>): Promise<(T|undefined)[]> {
     this.calls.push('getAll');
     return Promise.resolve([]);
   }
 
   // @ts-ignore
-  init(schemaVersion: number): Promise<void> {
-    this.calls.push('init');
-    return Promise.resolve();
-  }
-
-  // @ts-ignore
-  list<T>(keyPrefix?: string): Promise<KV<T>[]> {
+  list<T = unknown>(keyPrefix?: string): Promise<KV<T>[]> {
     this.calls.push('list');
     return Promise.resolve([]);
   }
 
   // @ts-ignore
-  set<T>(key: string, value: T|undefined): Promise<void> {
+  set<T = unknown>(key: string, value: T|undefined): Promise<void> {
     this.calls.push('set');
     return Promise.resolve();
   }
 
   // @ts-ignore
-  setAll(map: { [p: string]: any }): Promise<void> {
+  setAll<T = unknown>(map: { [p: string]: T }): Promise<void> {
     this.calls.push('setAll');
     return Promise.resolve();
   }
@@ -58,69 +51,18 @@ class NoOpStoreAdapter implements AsyncStore {
 
 }
 
+/** Creates new ObservableStoreImpl with NoOpAsyncStore. */
+function newObservableStoreForTest(asyncStore = new NoOpAsyncStore()): ObservableStore {
+  return new ObservableStoreImpl(() => asyncStore);
+}
+
 describe('ObservableStore', () => {
-
-  it('calls store adapter factory with correct params', () => {
-    let calledName = '';
-    let calledBrowser: boolean|undefined = undefined;
-    const adapterFactory = (name, browser) => {
-      calledName = name;
-      calledBrowser = browser;
-      return new InMemoryAsyncStore();
-    };
-
-    new ObservableStoreImpl('name1', true, adapterFactory);
-    expect(calledName).toBe('name1');
-    expect(calledBrowser).toBeTruthy();
-
-    new ObservableStoreImpl('name2', false, adapterFactory);
-    expect(calledName).toBe('name2');
-    expect(calledBrowser).toBeFalsy();
-  });
-
-  it('never calls set or get on un-initialized adapter', async (done) => {
-    let initCalled = false;
-    let markAdapterAsInitialized: () => void = () => {
-    };
-
-    class StoreAdapter extends NoOpStoreAdapter {
-      init(schemaVersion: number): Promise<void> {
-        const promise = new Promise<void>(resolve => {
-          initCalled = true;
-          markAdapterAsInitialized = resolve;
-        });
-        return Promise.all([super.init(schemaVersion), promise]) as any as Promise<void>;
-      }
-
-      get<T>(key: string): Promise<T|undefined> {
-        return super.get(key).then(() => 'value' as any as T);
-      }
-    }
-
-    const adapter = new StoreAdapter();
-    const store = new ObservableStoreImpl('name', true, () => adapter);
-    expect(initCalled).toBeTruthy();
-
-    // noinspection ES6MissingAwait
-    const set$$ = store.set('key', 'value', skipUpdateCheck);
-    expect(adapter.calls.filter(n => n === 'set').length).toBe(0);
-
-    const get$$ = store.get<string>('key', undefined, RefreshMode.DoNotRefresh, skipUpdateCheck).pipe(take(1)).toPromise();
-    expect(adapter.calls.filter(n => n === 'get').length).toBe(0);
-
-    markAdapterAsInitialized();
-
-    await Promise.all([set$$, get$$]);
-    expect(adapter.calls.filter(n => n === 'set').length).toBe(1);
-    expect(adapter.calls.filter(n => n === 'get').length).toBe(1);
-    done();
-  });
 
   it('fetches and sets value to adapter if it was missed', async (done) => {
     let setKey = '';
     let setValue: any = undefined;
 
-    class StoreAdapter extends NoOpStoreAdapter {
+    class AsyncStoreForTest extends NoOpAsyncStore {
       set<T>(key: string, value: T|undefined): Promise<void> {
         setKey += key; // the way to check in this test that 'set' was called only once.
         setValue = value;
@@ -128,7 +70,7 @@ describe('ObservableStore', () => {
       }
     }
 
-    const store = new ObservableStoreImpl('name', true, () => new StoreAdapter());
+    const store = new ObservableStoreImpl(() => new AsyncStoreForTest());
 
     const getKey = 'key';
     const fetchedValue = 'fetched';
@@ -147,10 +89,10 @@ describe('ObservableStore', () => {
       nFetchesCalled++;
       return of('value');
     };
-    const store = new ObservableStoreImpl('name1', true, () => new NoOpStoreAdapter());
+    const store = newObservableStoreForTest();
     const key = 'Key';
-    const v1 = await store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, checkUpdateByStringify).pipe(take(1)).toPromise();
-    const v2 = await store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, checkUpdateByStringify).pipe(take(1)).toPromise();
+    const v1 = await store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, checkUpdateByStringify).pipe(take(1)).toPromise();
+    const v2 = await store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, checkUpdateByStringify).pipe(take(1)).toPromise();
     expect(v1).toBe(v2);
     expect(nFetchesCalled).toBe(1);
     done();
@@ -165,9 +107,9 @@ describe('ObservableStore', () => {
       nFetchesCalled++;
       return resolver$.pipe(switchMap(() => of(value)));
     };
-    const store = new ObservableStoreImpl('store', true, () => new NoOpStoreAdapter());
-    const v1$$ = store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, checkUpdateByStringify).pipe(take(1)).toPromise();
-    const v2$$ = store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, checkUpdateByStringify).pipe(take(1)).toPromise();
+    const store = newObservableStoreForTest();
+    const v1$$ = store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, checkUpdateByStringify).pipe(take(1)).toPromise();
+    const v2$$ = store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, checkUpdateByStringify).pipe(take(1)).toPromise();
     resolver$.next();
     const res = await Promise.all([v1$$, v2$$]);
     expect(nFetchesCalled).toBe(1);
@@ -184,9 +126,9 @@ describe('ObservableStore', () => {
       nFetchesCalled++;
       return resolver$.pipe(delay(100), switchMap(() => of(value)));
     };
-    const store = new ObservableStoreImpl('store', true, () => new NoOpStoreAdapter());
-    const v1$$ = store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, checkUpdateByStringify).pipe(take(1)).toPromise();
-    const v2$$ = store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, checkUpdateByStringify).pipe(take(1)).toPromise();
+    const store = newObservableStoreForTest();
+    const v1$$ = store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, checkUpdateByStringify).pipe(take(1)).toPromise();
+    const v2$$ = store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, checkUpdateByStringify).pipe(take(1)).toPromise();
     resolver$.next();
     const res = await Promise.all([v1$$, v2$$]);
     expect(nFetchesCalled).toBe(1);
@@ -198,7 +140,7 @@ describe('ObservableStore', () => {
     const key = 'Key';
     const value = 'Value';
 
-    class TestStoreAdapter extends NoOpStoreAdapter {
+    class TestStoreAdapter extends NoOpAsyncStore {
       get = <T>(k: string): Promise<T|undefined> => (Promise.resolve(k === key ? value : undefined) as unknown as Promise<T|undefined>);
     }
 
@@ -208,9 +150,9 @@ describe('ObservableStore', () => {
       return of(value);
     };
 
-    const store = new ObservableStoreImpl('store', true, () => new TestStoreAdapter());
+    const store = new ObservableStoreImpl(() => new TestStoreAdapter());
     await store.set<string>(key, value, skipUpdateCheck);
-    await store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, checkUpdateByStringify).pipe(take(1)).toPromise();
+    await store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, checkUpdateByStringify).pipe(take(1)).toPromise();
     expect(nFetchesCalled).toBe(0);
     done();
   });
@@ -220,7 +162,7 @@ describe('ObservableStore', () => {
     const key = 'Key';
     const value = 'Value';
 
-    class TestStoreAdapter extends NoOpStoreAdapter {
+    class TestStoreAdapter extends NoOpAsyncStore {
       get = <T>(k: string): Promise<T|undefined> => (Promise.resolve(k === key ? value : undefined) as unknown as Promise<T|undefined>);
     }
 
@@ -228,7 +170,7 @@ describe('ObservableStore', () => {
       nFetchesCalled++;
       return of('?');
     };
-    const store = new ObservableStoreImpl('store', true, () => new TestStoreAdapter());
+    const store = new ObservableStoreImpl(() => new TestStoreAdapter());
     await store.set<string>(key, value, skipUpdateCheck);
     const result = await store.get<string>(key, fetchFn, RefreshMode.DoNotRefresh, checkUpdateByStringify).pipe(take(1)).toPromise();
     expect(nFetchesCalled).toBe(0);
@@ -244,18 +186,18 @@ describe('ObservableStore', () => {
       nFetchesCalled++;
       return of(value);
     };
-    const store = new ObservableStoreImpl('store', true, () => new NoOpStoreAdapter());
+    const store = newObservableStoreForTest();
     await store.get<string>(key, fetchFn, RefreshMode.Refresh, checkUpdateByStringify).pipe(take(1)).toPromise();
     await store.get<string>(key, fetchFn, RefreshMode.Refresh, checkUpdateByStringify).pipe(take(1)).toPromise();
     await store.get<string>(key, fetchFn, RefreshMode.Refresh, checkUpdateByStringify).pipe(take(1)).toPromise();
-    await store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, checkUpdateByStringify).pipe(take(1)).toPromise();
+    await store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, checkUpdateByStringify).pipe(take(1)).toPromise();
     await store.get<string>(key, fetchFn, RefreshMode.DoNotRefresh, checkUpdateByStringify).pipe(take(1)).toPromise();
     expect(nFetchesCalled).toBe(3);
     done();
   });
 
   it('should return store value when RefreshMode.DoNotRefresh and no fetchFn provided', async (done) => {
-    const store = new ObservableStoreImpl('store', true, () => new NoOpStoreAdapter());
+    const store = newObservableStoreForTest();
     const result = await store.get<string>('some key', undefined, RefreshMode.DoNotRefresh, skipUpdateCheck).pipe(take(1)).toPromise();
     expect(result).toBeUndefined();
     done();
@@ -267,9 +209,9 @@ describe('ObservableStore', () => {
     const fetchFn = () => {
       return of(value);
     };
-    const store = new ObservableStoreImpl('store', true, () => new NoOpStoreAdapter());
-    store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, skipUpdateCheck);
-    const o2 = store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, skipUpdateCheck);
+    const store = newObservableStoreForTest();
+    store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, skipUpdateCheck);
+    const o2 = store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, skipUpdateCheck);
     const res = await o2.pipe(take(1)).toPromise();
     expect(res).toBe(value);
     done();
@@ -283,9 +225,9 @@ describe('ObservableStore', () => {
       nFetchesCalled++;
       return of(value);
     };
-    const store = new ObservableStoreImpl('store', true, () => new NoOpStoreAdapter());
-    const o1 = store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, skipUpdateCheck);
-    const o2 = store.get<string>(key, fetchFn, RefreshMode.RefreshOncePerSession, skipUpdateCheck);
+    const store = newObservableStoreForTest();
+    const o1 = store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, skipUpdateCheck);
+    const o2 = store.get<string>(key, fetchFn, RefreshMode.RefreshOnce, skipUpdateCheck);
     const res1 = await o1.pipe(take(1)).toPromise();
     const res2 = await o2.pipe(take(1)).toPromise();
     expect(res1).toBe(value);
