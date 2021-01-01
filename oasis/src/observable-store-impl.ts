@@ -7,7 +7,7 @@ import {CheckUpdateFn, FetchFn, ObservableStore, RefreshMode, skipUpdateCheck} f
 export interface TransferStateAdapter {
   getInitialStoreState(): { [key: string]: unknown }|undefined;
 
-  registerSnapshotProvider(callback: () => object): void;
+  setSnapshotProvider(snapshotProvider: () => object): void;
 }
 
 
@@ -17,7 +17,7 @@ class NoOpTransferStateAdapter implements TransferStateAdapter {
     return undefined;
   }
 
-  registerSnapshotProvider(): void {
+  setSnapshotProvider(): void {
   }
 }
 
@@ -46,7 +46,7 @@ export class ObservableStoreImpl implements ObservableStore {
   ) {
     this.asyncStore$$ = new Promise<AsyncStore>(resolve => {
       const asyncStore = asyncStoreFactory();
-      transferStateAdapter?.registerSnapshotProvider(() => pairsToObject(asyncStore.snapshot()));
+      transferStateAdapter?.setSnapshotProvider(() => pairsToObject(asyncStore.snapshot()));
       const initialState = transferStateAdapter?.getInitialStoreState();
       const asyncStoreInit$$: Promise<void> = initialState === undefined
                                               ? Promise.resolve()

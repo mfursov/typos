@@ -4,7 +4,10 @@ const MAX_KEY_CHAR = '~';
 
 /** Indexed DB bases store adapter. */
 export class IndexedDbAsyncStore implements AsyncStore {
-  constructor(private readonly indexDbName, private readonly objectStoreName: string, private readonly schemaVersion = 1) {
+  constructor(private readonly indexDbName,
+              private readonly objectStoreName: string,
+              private readonly schemaVersion = 1,
+              private readonly upgradeCallback?: (db: IDBDatabase, event: IDBVersionChangeEvent) => void) {
   }
 
   get<T = unknown>(key: string): Promise<T|undefined> {
@@ -130,14 +133,14 @@ export class IndexedDbAsyncStore implements AsyncStore {
 
   execute(dbOpCallback: (idb: IDBDatabase) => void): void {
     const request: IDBOpenDBRequest = window.indexedDB.open(this.indexDbName, this.schemaVersion);
-    //TODO: report errors.
-    request.onerror = err => console.error(err);
+    request.onerror = err => console.error(err); //TODO: report errors.
     request.onsuccess = () => dbOpCallback(request.result);
-    request.onupgradeneeded = (e: IDBVersionChangeEvent) => {
-      const result: IDBDatabase = (e.currentTarget as any).result;
-      const objectStoreParams = {keyPath: 'key'};
-      if (!result.objectStoreNames.contains(this.objectStoreName)) {
-        result.createObjectStore(this.objectStoreName, objectStoreParams);
+    request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+      const db: IDBDatabase = (event.currentTarget as any).result;
+      if (this.upgradeCallback) {
+        this.upgradeCallback(db, event);
+      } else if (!db.objectStoreNames.contains(this.objectStoreName)) {
+        db.createObjectStore(this.objectStoreName, {keyPath: 'key'});
       }
     };
   }
