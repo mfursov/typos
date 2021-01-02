@@ -63,7 +63,7 @@ export interface ObservableStore {
   clear(): Promise<void>;
 
   /** Resolves when the store is initialized and is ready to use. */
-  initialized$$: Promise<void>;
+  readonly initialized$$: Promise<void>;
 }
 
 export function skipUpdateCheck(): boolean {
