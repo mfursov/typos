@@ -5,7 +5,7 @@
 import {AsyncStore, KV} from './async-store';
 
 export class LocalStorageAsyncStore implements AsyncStore {
-  constructor(private readonly storeKeyPrefix) {
+  constructor(private readonly storeKeyPrefix: string) {
   }
 
   get<T = unknown>(key: string): Promise<T|undefined> {

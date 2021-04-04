@@ -275,7 +275,7 @@ export function deepFreeze<T>(obj: T|undefined): T|undefined {
   }
   Object.freeze(obj);
   for (const prop of Object.getOwnPropertyNames(obj)) {
-    const value = obj[prop];
+    const value: unknown = (obj as any)[prop];
     if ((typeof value === 'object' || typeof value === 'function') && !Object.isFrozen(value)) {
       deepFreeze(value);
     }

@@ -7,14 +7,14 @@
     "test": "karma start"
   },
   "dependencies": {
-    "@types/jasmine": "3.6.2",
-    "@types/node": "14.14.17",
-    "karma": "5.2.3",
+    "@types/jasmine": "3.6.9",
+    "@types/node": "14.14.37",
+    "karma": "6.3.2",
     "karma-chrome-launcher": "3.1.0",
     "karma-cli": "2.0.0",
     "karma-jasmine": "4.0.1",
-    "karma-typescript": "5.2.0",
-    "rxjs": "6.6.3",
-    "typescript": "4.1.3"
+    "karma-typescript": "5.5.1",
+    "rxjs": "6.6.7",
+    "typescript": "4.2.3"
   }
 }
